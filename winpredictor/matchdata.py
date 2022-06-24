@@ -40,9 +40,9 @@ class MatchData(object):
         self.team_1_maidens = match.team_1_maidens
         self.team_1_powerplay_wickets = match.team_1_powerplay_wickets
         self.team_1_non_powerplay_wickets = match.team_1_non_powerplay_wickets
-        self.team_1_runs_wickets_6_to_9 = match.team_1_wickets_overs_6_to_9
-        self.team_1_runs_wickets_10_to_14 = match.team_1_wickets_overs_10_to_14
-        self.team_1_runs_wickets_15_to_19 = match.team_1_wickets_overs_15_to_19
+        self.team_1_wickets_overs_6_to_9 = match.team_1_wickets_overs_6_to_9
+        self.team_1_wickets_overs_10_to_14 = match.team_1_wickets_overs_10_to_14
+        self.team_1_wickets_overs_15_to_19 = match.team_1_wickets_overs_15_to_19
         self.team_2_runs = match.team_2_runs
         self.team_2_fours = match.team_2_fours
         self.team_2_sixes = match.team_2_sixes
@@ -61,6 +61,6 @@ class MatchData(object):
         self.team_2_maidens = match.team_2_maidens
         self.team_2_powerplay_wickets = match.team_2_powerplay_wickets
         self.team_2_non_powerplay_wickets = match.team_2_non_powerplay_wickets
-        self.team_2_runs_wickets_6_to_9 = match.team_2_wickets_overs_6_to_9
-        self.team_2_runs_wickets_10_to_14 = match.team_2_wickets_overs_10_to_14
-        self.team_2_runs_wickets_15_to_19 = match.team_2_wickets_overs_15_to_19
+        self.team_2_wickets_overs_6_to_9 = match.team_2_wickets_overs_6_to_9
+        self.team_2_wickets_overs_10_to_14 = match.team_2_wickets_overs_10_to_14
+        self.team_2_wickets_overs_15_to_19 = match.team_2_wickets_overs_15_to_19
