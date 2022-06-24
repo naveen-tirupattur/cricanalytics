@@ -7,4 +7,4 @@ m = Match('1310947', 'data', False)
 md = MatchData(m)
 print(vars(md))
 
-df_match = pd.DataFrame(read_data('data', 't20s_male_json'))
+df_match = pd.DataFrame(Main.read_data('data', 't20s_male_json'))
