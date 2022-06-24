@@ -25,15 +25,6 @@ def download_from_cricinfo(input_path, output_path):
     print('Total Files: ', i)
 
 
-
-
-# download_from_cricinfo('data/t20s_male_json', 'data/cricinfo')
-# m = Match('1310947', 'data', False)
-m = Match('1263166', 'data', False)
-# md = MatchData(m)
-# print(vars(md))
-
-
 def read_data(input_dir, cricsheet_dir):
     file_names_list = []
     matches_data = []
@@ -48,7 +39,4 @@ def read_data(input_dir, cricsheet_dir):
                 print('total files read', i)
                 i = i + 1
     return matches_data
-
-
-df_match = pd.DataFrame(read_data('data', 't20s_male_json'))
 

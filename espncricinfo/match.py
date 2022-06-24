@@ -155,7 +155,6 @@ class Match(object):
 
     def _read_file(self, data_dir, extension):
         root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-        print(root_dir)
         with open(os.path.join(root_dir, self.input_path, data_dir, self.match_id + '.' + extension)) as file:
             content = file.read()
             print('Finished reading file: {}'.format(file.name))
