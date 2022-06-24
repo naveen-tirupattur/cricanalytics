@@ -162,7 +162,8 @@ class Match(object):
             return content
 
     def get_cric_sheet_data(self):
-        return json.loads(self._read_file('t20s_male_json', 'json'))
+        if self.input_path is not None:
+            return json.loads(self._read_file('t20s_male_json', 'json'))
 
     def get_json(self):
         if not self.download:
@@ -372,7 +373,7 @@ class Match(object):
         return [i for i, inn in enumerate(self.json['innings']) if str(inn['batting_team_id']) == team_id][0]
 
     def _get_innings_detailed(self, innings):
-        if (len(self.cric_sheet_data['innings']) - 1) < innings:
+        if self.cric_sheet_data is None or (len(self.cric_sheet_data['innings']) - 1) < innings:
             return None
         else:
             return self.cric_sheet_data['innings'][innings]
@@ -492,9 +493,13 @@ class Match(object):
             return self.team_2_name
 
     def _outcome(self):
-        return self.cric_sheet_data['info']['outcome']
+        if self.cric_sheet_data is not None:
+            return self.cric_sheet_data['info']['outcome']
 
     def _match_winner(self):
+        if self._outcome() is None:
+            return None
+
         if 'winner' in self._outcome():
             return self._outcome()['winner']
         elif 'bowl_out' in self._outcome():
@@ -505,7 +510,7 @@ class Match(object):
             return None
 
     def _target(self):
-        if len(self.cric_sheet_data['innings']) == 1:
+        if self.cric_sheet_data is None or len(self.cric_sheet_data['innings']) == 1:
             return None
         elif 'target' in self.cric_sheet_data['innings'][1]:
             return self.cric_sheet_data['innings'][1]['target']
@@ -519,12 +524,12 @@ class Match(object):
             return self._target()['overs']
 
     def _win_by_wickets(self):
-        if 'wickets' in self._outcome():
+        if self._outcome() is not None and 'wickets' in self._outcome():
             if 'wickets' in self._outcome()['by']:
                 return int(self._outcome()['by']['wickets'])
 
     def _win_by_runs(self):
-        if 'by' in self._outcome():
+        if self._outcome() is not None and 'by' in self._outcome():
             if 'runs' in self._outcome()['by']:
                 return int(self._outcome()['by']['runs'])
 
