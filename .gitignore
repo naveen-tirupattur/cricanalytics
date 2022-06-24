@@ -1,2 +1,5 @@
 *.json
 *.html
+/dist
+/data
+/cricanalytics_winpredictor.egg-info
