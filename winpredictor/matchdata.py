@@ -1,29 +1,3 @@
-import json
-import os
-from src.cricanalytics.download import Download
-from espncricinfo.match import Match
-import pandas as pd
-ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
-
-
-def download_from_cricinfo(input_path, output_path):
-    data_files = os.path.join(ROOT_DIR, input_path)
-    i = 0
-    for dirname, _, filenames in os.walk(data_files):
-        for filename in filenames:
-            # print(os.path.join(dirname, filename))
-            with open(os.path.join(dirname, filename)) as file:
-                if filename.endswith('.json'):
-                    i = i + 1
-                    data = json.loads(file.read())
-                    match_id = filename.rsplit(".", 1)[0]
-                    print(match_id)
-                    print("Downloading file #{} for match {}".format(i, match_id))
-                    Download(match_id, os.path.join(ROOT_DIR, output_path, match_id))
-                    data['info']['filename'] = filename
-    print('Total Files: ', i)
-
-
 class MatchData(object):
     def __init__(self, match):
         self.id = match.match_id
@@ -90,30 +64,3 @@ class MatchData(object):
         self.team_2_runs_wickets_6_to_9 = match.team_2_wickets_overs_6_to_9
         self.team_2_runs_wickets_10_to_14 = match.team_2_wickets_overs_10_to_14
         self.team_2_runs_wickets_15_to_19 = match.team_2_wickets_overs_15_to_19
-
-
-# download_from_cricinfo('data/t20s_male_json', 'data/cricinfo')
-# m = Match('1310947', 'data', False)
-m = Match('1263166', 'data', False)
-md = MatchData(m)
-print(vars(md))
-
-
-def read_data(input_dir, cricsheet_dir):
-    file_names_list = []
-    matches_data = []
-    i = 1
-    data_files = os.path.join(ROOT_DIR, input_dir, cricsheet_dir)
-    for dirname, _, filenames in os.walk(data_files):
-        for filename in filenames:
-            if filename.endswith('.json'):
-                match_id = filename.rsplit(".", 1)[0]
-                match = Match(match_id, input_dir, False)
-                matches_data.append(MatchData(match))
-                print('total files read', i)
-                i = i + 1
-    return matches_data
-
-
-df_match = pd.DataFrame(read_data('data', 't20s_male_json'))
-
