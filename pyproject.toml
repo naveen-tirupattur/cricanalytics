@@ -1,7 +1,7 @@
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 [project]
-name = "cricanalytics-winpredictor"
+name = "cricanalytics"
 version = "0.0.1"
 authors = [
   { name="Naveen Tirupattur", email="naveen.tirupattur@gmail.com" },

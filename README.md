@@ -11,7 +11,7 @@ The [LICENSE](LICENSE.txt) for this library applies only to the code, not to the
 ### Installation
 
 ```python
-pip3 install cricanalytics-winpredictor
+pip install cricanalytics
 ```
 
 ### Usage

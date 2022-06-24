@@ -2,4 +2,4 @@
 *.html
 /dist
 /data
-/cricanalytics_winpredictor.egg-info
+/cricanalytics.egg-info
