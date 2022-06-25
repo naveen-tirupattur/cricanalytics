@@ -5,6 +5,7 @@ from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
 import os
 import pandas as pd
 import re
+import logging as log
 
 
 class Match(object):
@@ -157,7 +158,7 @@ class Match(object):
         root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
         with open(os.path.join(root_dir, self.input_path, data_dir, self.match_id + '.' + extension)) as file:
             content = file.read()
-            print('Finished reading file: {}'.format(file.name))
+            log.debug('Finished reading file: {}'.format(file.name))
             file.close()
             return content
 
@@ -524,7 +525,7 @@ class Match(object):
             return self._target()['overs']
 
     def _win_by_wickets(self):
-        if self._outcome() is not None and 'wickets' in self._outcome():
+        if self._outcome() is not None and 'by' in self._outcome():
             if 'wickets' in self._outcome()['by']:
                 return int(self._outcome()['by']['wickets'])
 
