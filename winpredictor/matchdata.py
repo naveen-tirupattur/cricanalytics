@@ -5,7 +5,7 @@ class MatchData(object):
         self.country_name = match.country_name
         self.town_name = match.town_name
         self.start_datetime_gmt = match.start_datetime_gmt
-        self.match_type = match.lighting
+        self.match_start_time_type = match.lighting
         self.description = match.description
         self.team_1_id = match.team_1_id
         self.team_1_name = match.team_1_name
