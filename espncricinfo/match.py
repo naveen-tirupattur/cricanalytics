@@ -519,10 +519,14 @@ class Match(object):
     def _target_runs(self):
         if not self._target() is None:
             return self._target()['runs']
+        else:
+            return self.innings[1]['target']
 
     def _target_overs(self):
         if not self._target() is None:
             return self._target()['overs']
+        else:
+            return self.innings[1]['over_limit']
 
     def _win_by_wickets(self):
         if self._outcome() is not None and 'by' in self._outcome():
