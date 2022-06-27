@@ -5,7 +5,7 @@ from winpredictor.matchdata import MatchData
 from winpredictor.download import Download
 import pandas as pd
 ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-
+import logging as log
 
 class Main(object):
 
@@ -39,7 +39,7 @@ class Main(object):
                     match_id = filename.rsplit(".", 1)[0]
                     match = Match(match_id, input_dir, False)
                     matches_data.append(MatchData(match))
-                    print('total files read', i)
+                    log.debug('total files read', i)
                     i = i + 1
         return matches_data
 
