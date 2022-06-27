@@ -1,6 +1,6 @@
 class MatchData(object):
     def __init__(self, match):
-        # self.id = match.match_id
+        self.id = match.match_id
         self.venue = match.ground_name
         self.country_name = match.country_name
         self.town_name = match.town_name
