@@ -1,15 +1,16 @@
+#  Class to store the features required for prediction
 class MatchData(object):
     def __init__(self, match):
         self.id = match.match_id
         self.venue = match.ground_name
         self.country_name = match.country_name
         self.town_name = match.town_name
-        # self.start_datetime_gmt = match.start_datetime_gmt
+        self.start_datetime_gmt = match.start_datetime_gmt
         self.match_start_time_type = match.lighting
-        # self.description = match.description
-        # self.team_1_id = match.team_1_id
+        self.description = match.description
+        self.team_1_id = match.team_1_id
         self.team_1_name = match.team_1_name
-        # self.team_2_id = match.team_2_id
+        self.team_2_id = match.team_2_id
         self.team_2_name = match.team_2_name
         self.home_team = match.home_team
         self.toss_winner = match.toss_winner
@@ -22,7 +23,7 @@ class MatchData(object):
         self.dl_applied = match.dl_applied
         self.target_runs = match.target_runs
         self.target_overs = match.target_overs
-        # self.team_1_runs = match.team_1_runs
+        self.team_1_runs = match.team_1_runs
         self.team_1_fours = match.team_1_fours
         self.team_1_sixes = match.team_1_sixes
         self.team_1_balls_batted = match.team_1_balls_batted

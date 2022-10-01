@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
+# TODO - Fix this
 """
-This module contains various exceptions raised by python-espncricinfo.
+This module contains various exceptions raised by python-data_provider.
 """
 
 

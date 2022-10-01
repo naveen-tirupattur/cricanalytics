@@ -1,45 +1,34 @@
 import json
 import os
-from espncricinfo.match import Match
+from data_provider.match import Match
 from winpredictor.matchdata import MatchData
-from winpredictor.download import Download
-import pandas as pd
-ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+from data_provider.datafetcher import DataFetcher
 import logging as log
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+
 
 class Main(object):
-
+    # Entry point method to parse cricsheet data and scrape data from espncricinfo
+    # This method expects the location of downloaded cricsheet json data
+    # More info about cricsheet can be found here: https://cricsheet.org/
     @staticmethod
-    def download_from_cricinfo(input_path, output_path):
-        data_files = os.path.join(ROOT_DIR, input_path)
-        i = 0
-        for dirname, _, filenames in os.walk(data_files):
-            for filename in filenames:
-                # print(os.path.join(dirname, filename))
-                with open(os.path.join(dirname, filename)) as file:
-                    if filename.endswith('.json'):
-                        i = i + 1
-                        data = json.loads(file.read())
-                        match_id = filename.rsplit(".", 1)[0]
-                        print(match_id)
-                        print("Downloading file #{} for match {}".format(i, match_id))
-                        Download(match_id, os.path.join(ROOT_DIR, output_path, match_id))
-                        data['info']['filename'] = filename
-        print('Total Files: ', i)
-
-    @staticmethod
-    def read_data(input_dir, cricsheet_dir):
+    def prepare_data(input_dir, cricsheet_data_dir):
         file_names_list = []
         matches_data = []
         i = 1
-        data_files = os.path.join(ROOT_DIR, input_dir, cricsheet_dir)
+        data_files = os.path.join(ROOT_DIR, input_dir, cricsheet_data_dir)
         for dirname, _, filenames in os.walk(data_files):
             for filename in filenames:
                 if filename.endswith('.json'):
-                    match_id = filename.rsplit(".", 1)[0]
-                    match = Match(match_id, input_dir, False)
-                    matches_data.append(MatchData(match))
-                    log.debug('total files read', i)
-                    i = i + 1
+                    with open(os.path.join(dirname, filename)) as file:
+                        match_id = filename.rsplit(".", 1)[0]
+                        cricsheet_json = json.loads(file.read())
+                        # Fetch data from espncricinfo
+                        cricinfo_data = DataFetcher(match_id, os.path.join(ROOT_DIR, input_dir))
+                        match = Match(match_id, cricinfo_data.json, cricinfo_data.html, cricsheet_json)
+                        matches_data.append(MatchData(match))
+                        log.debug('total files read', i)
+                        i = i + 1
         return matches_data
+
 

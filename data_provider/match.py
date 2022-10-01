@@ -1,24 +1,28 @@
 import json
 import requests
 from bs4 import BeautifulSoup
-from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
+from data_provider.exceptions import MatchNotFoundError, NoScorecardError
 import os
 import pandas as pd
 import re
 import logging as log
 
 
+# TODO - Add more info like batting/bowling stats, win percentage in last X games and team experience
 class Match(object):
 
-    def __init__(self, match_id, input_path=None, download=True):
+    def __init__(self, match_id, cricinfo_json, cricinfo_html, cricsheet_json):
         self.match_id = match_id
         self.match_url = "https://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
         self.json_url = "https://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
-        self.download = download
-        self.input_path = input_path
-        self.json = self.get_json()
-        self.html = self.get_html()
-        self.cric_sheet_data = self.get_cric_sheet_data()
+        self.json = cricinfo_json
+        self.html = cricinfo_html
+        self.cricsheet_json = cricsheet_json
+        # TODO - Fix this from here
+        # self.json = self.get_json()
+        # self.html = self.get_html()
+        # self.cricsheet_json = self.get_cric_sheet_data()
+        # TODO - Fix this till here
         self.comms_json = self.get_comms_json()
         if self.json:
             self.__unicode__ = self._description()
@@ -152,41 +156,23 @@ class Match(object):
         return self.description
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}('f'{self.match_id!r})')
-
-    def _read_file(self, data_dir, extension):
-        root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-        with open(os.path.join(root_dir, self.input_path, data_dir, self.match_id + '.' + extension)) as file:
-            content = file.read()
-            log.debug('Finished reading file: {}'.format(file.name))
-            file.close()
-            return content
-
-    def get_cric_sheet_data(self):
-        if self.input_path is not None:
-            return json.loads(self._read_file('t20s_male_json', 'json'))
+        return f'{self.__class__.__name__}('f'{self.match_id!r})'
 
     def get_json(self):
-        if not self.download:
-            return json.loads(self._read_file('cricinfo', 'json'))
+        r = requests.get(self.json_url)
+        if r.status_code == 404:
+            raise MatchNotFoundError
+        elif 'Scorecard not yet available' in r.text:
+            raise NoScorecardError
         else:
-            r = requests.get(self.json_url)
-            if r.status_code == 404:
-                raise MatchNotFoundError
-            elif 'Scorecard not yet available' in r.text:
-                raise NoScorecardError
-            else:
-                return r.json()
+            return r.json()
 
     def get_html(self):
-        if not self.download:
-            return BeautifulSoup(self._read_file('cricinfo', 'html'), 'html.parser')
+        r = requests.get(self.match_url)
+        if r.status_code == 404:
+            raise MatchNotFoundError
         else:
-            r = requests.get(self.match_url)
-            if r.status_code == 404:
-                raise MatchNotFoundError
-            else:
-                return BeautifulSoup(r.text, 'html.parser')
+            return BeautifulSoup(r.text, 'html.parser')
 
     def match_json(self):
         return self.json['match']
@@ -374,10 +360,10 @@ class Match(object):
         return [i for i, inn in enumerate(self.json['innings']) if str(inn['batting_team_id']) == team_id][0]
 
     def _get_innings_detailed(self, innings):
-        if self.cric_sheet_data is None or (len(self.cric_sheet_data['innings']) - 1) < innings:
+        if self.cricsheet_json is None or (len(self.cricsheet_json['innings']) - 1) < innings:
             return None
         else:
-            return self.cric_sheet_data['innings'][innings]
+            return self.cricsheet_json['innings'][innings]
 
     def _team_1(self):
         return self.json['team'][0]
@@ -494,8 +480,8 @@ class Match(object):
             return self.team_2_name
 
     def _outcome(self):
-        if self.cric_sheet_data is not None:
-            return self.cric_sheet_data['info']['outcome']
+        if self.cricsheet_json is not None:
+            return self.cricsheet_json['info']['outcome']
 
     def _match_winner(self):
         if self._outcome() is None:
@@ -511,10 +497,10 @@ class Match(object):
             return None
 
     def _target(self):
-        if self.cric_sheet_data is None or len(self.cric_sheet_data['innings']) == 1:
+        if self.cricsheet_json is None or len(self.cricsheet_json['innings']) == 1:
             return None
-        elif 'target' in self.cric_sheet_data['innings'][1]:
-            return self.cric_sheet_data['innings'][1]['target']
+        elif 'target' in self.cricsheet_json['innings'][1]:
+            return self.cricsheet_json['innings'][1]['target']
 
     def _target_runs(self):
         if not self._target() is None:
