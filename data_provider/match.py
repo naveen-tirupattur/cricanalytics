@@ -1,28 +1,33 @@
-import json
 import requests
-from bs4 import BeautifulSoup
+import json
 from data_provider.exceptions import MatchNotFoundError, NoScorecardError
-import os
 import pandas as pd
 import re
-import logging as log
+import os
+from bs4 import BeautifulSoup
+import logging
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+log = logging.getLogger(__name__)
 
 
-# TODO - Add more info like batting/bowling stats, win percentage in last X games and team experience
+# 1. Provides match level data for a given match_id.
+# 2. Scrapes match data from espncricinfo if it is not found under 'cricinfo' directory under 'input_path' and
+# optionally writes the scraped data as a file if 'save_data' is set to True
+# 3. Reads additional match info from cricsheet data if available under 'input_path'
+# More info about cricsheet can be found here: https://cricsheet.org/
+# TODO - Add more info like batting/bowling stats, win percentage in last X games and team experience(, rankings?)
 class Match(object):
 
-    def __init__(self, match_id, cricinfo_json, cricinfo_html, cricsheet_json):
+    def __init__(self, match_id, input_path=None, save_data=False):
         self.match_id = match_id
+        self.input_path = os.path.join(ROOT_DIR, input_path)
+        self.save_data = save_data
         self.match_url = "https://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
         self.json_url = "https://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
-        self.json = cricinfo_json
-        self.html = cricinfo_html
-        self.cricsheet_json = cricsheet_json
-        # TODO - Fix this from here
-        # self.json = self.get_json()
-        # self.html = self.get_html()
-        # self.cricsheet_json = self.get_cric_sheet_data()
-        # TODO - Fix this till here
+        self.json = self._get_json()
+        self.html = self._get_html()
+        self.cricsheet_json = self._get_cricsheet_json()
         self.comms_json = self.get_comms_json()
         if self.json:
             self.__unicode__ = self._description()
@@ -84,7 +89,7 @@ class Match(object):
             self.team_1_runs_by_over = self._get_runs_by_over(self.team_1_innings_num)
             self.team_1_powerplay_runs = self._get_powerplay_data(self.team_1_innings_num, 'runs')
             self.team_1_non_powerplay_runs = self._get_non_powerplay_data(self.team_1_innings_num, 'runs')
-            self.team_1_runs_overs_6_to_9 = self._get_agg_scores(self.team_1_innings_num, 'runs', 6, 9)
+            self.team_1_runs_overs_5_to_9 = self._get_agg_scores(self.team_1_innings_num, 'runs', 5, 9)
             self.team_1_runs_overs_10_to_14 = self._get_agg_scores(self.team_1_innings_num, 'runs', 10, 14)
             self.team_1_runs_overs_15_to_19 = self._get_agg_scores(self.team_1_innings_num, 'runs', 15, 19)
             self.team_1_run_rate = self._team_1_run_rate()
@@ -105,7 +110,7 @@ class Match(object):
             self.team_2_runs_by_over = self._get_runs_by_over(self.team_2_innings_num)
             self.team_2_powerplay_runs = self._get_powerplay_data(self.team_2_innings_num, 'runs')
             self.team_2_non_powerplay_runs = self._get_non_powerplay_data(self.team_2_innings_num, 'runs')
-            self.team_2_runs_overs_6_to_9 = self._get_agg_scores(self.team_2_innings_num, 'runs', 6, 9)
+            self.team_2_runs_overs_5_to_9 = self._get_agg_scores(self.team_2_innings_num, 'runs', 5, 9)
             self.team_2_runs_overs_10_to_14 = self._get_agg_scores(self.team_2_innings_num, 'runs', 10, 14)
             self.team_2_runs_overs_15_to_19 = self._get_agg_scores(self.team_2_innings_num, 'runs', 15, 19)
             self.team_2_run_rate = self._team_2_run_rate()
@@ -120,7 +125,7 @@ class Match(object):
             self.team_1_wickets_by_over = self._get_wickets_by_over(self.team_2_innings_num)
             self.team_1_powerplay_wickets = self._get_powerplay_data(self.team_2_innings_num, 'wickets')
             self.team_1_non_powerplay_wickets = self._get_non_powerplay_data(self.team_2_innings_num, 'wickets')
-            self.team_1_wickets_overs_6_to_9 = self._get_agg_scores(self.team_2_innings_num, 'wickets', 6, 9)
+            self.team_1_wickets_overs_5_to_9 = self._get_agg_scores(self.team_2_innings_num, 'wickets', 5, 9)
             self.team_1_wickets_overs_10_to_14 = self._get_agg_scores(self.team_2_innings_num, 'wickets', 10, 14)
             self.team_1_wickets_overs_15_to_19 = self._get_agg_scores(self.team_2_innings_num, 'wickets', 15, 19)
             self.team_1_maidens = self._get_maidens(self.team_2_innings_num)
@@ -132,7 +137,7 @@ class Match(object):
             self.team_2_wickets_by_over = self._get_wickets_by_over(self.team_1_innings_num)
             self.team_2_powerplay_wickets = self._get_powerplay_data(self.team_1_innings_num, 'wickets')
             self.team_2_non_powerplay_wickets = self._get_non_powerplay_data(self.team_1_innings_num, 'wickets')
-            self.team_2_wickets_overs_6_to_9 = self._get_agg_scores(self.team_1_innings_num, 'wickets', 6, 9)
+            self.team_2_wickets_overs_5_to_9 = self._get_agg_scores(self.team_1_innings_num, 'wickets', 5, 9)
             self.team_2_wickets_overs_10_to_14 = self._get_agg_scores(self.team_1_innings_num, 'wickets', 10, 14)
             self.team_2_wickets_overs_15_to_19 = self._get_agg_scores(self.team_1_innings_num, 'wickets', 15, 19)
             self.team_2_maidens = self._get_maidens(self.team_1_innings_num)
@@ -153,26 +158,68 @@ class Match(object):
                 self.all_innings = self._all_innings()
 
     def __str__(self):
-        return self.description
+        return json.dumps(dict(self), ensure_ascii=False)
 
     def __repr__(self):
         return f'{self.__class__.__name__}('f'{self.match_id!r})'
 
-    def get_json(self):
-        r = requests.get(self.json_url)
-        if r.status_code == 404:
-            raise MatchNotFoundError
-        elif 'Scorecard not yet available' in r.text:
-            raise NoScorecardError
-        else:
-            return r.json()
+    @staticmethod
+    def _write(path, file, data):
+        if not os.path.exists(path):
+            os.mkdir(path)
+        f = open(file, "w")
+        f.write(data)
+        log.info('Finished writing file: {}'.format(file))
+        f.close()
 
-    def get_html(self):
-        r = requests.get(self.match_url)
-        if r.status_code == 404:
-            raise MatchNotFoundError
+    @staticmethod
+    def _read_file(file):
+        with open(os.path.join(ROOT_DIR, file)) as file:
+            content = file.read()
+            log.info('Finished reading file: {}'.format(file.name))
+            file.close()
+            return content
+
+    def _get_json(self):
+        input_dir = os.path.join(self.input_path, 'cricinfo')
+        file = os.path.join(input_dir, self.match_id + '.json')
+        if os.path.exists(file):
+            return json.loads(self._read_file(file))
         else:
-            return BeautifulSoup(r.text, 'html.parser')
+            r = requests.get(self.json_url)
+            if r.status_code == 404:
+                raise Exception('Invalid URL')
+            elif 'Scorecard not yet available' in r.text:
+                raise Exception('Score card not yet available')
+            else:
+                log.info("Scraping JSON data for match_id: {}".format(self.match_id))
+                json_data = r.json()
+                if self.save_data:
+                    self._write(input_dir, file, json.dumps(json_data))
+                return json_data
+
+    def _get_html(self):
+        input_dir = os.path.join(self.input_path, 'cricinfo')
+        file = os.path.join(input_dir, self.match_id + '.html')
+        if os.path.exists(file):
+            return BeautifulSoup(self._read_file(file), 'html.parser')
+        else:
+            r = requests.get(self.match_url)
+            if r.status_code == 404:
+                raise Exception('Invalid URL')
+            else:
+                log.info("Scraping html data for match_id: {}".format(self.match_id))
+                html_data = BeautifulSoup(r.text, 'html.parser')
+                if self.save_data:
+                    self._write(input_dir, file, html_data.prettify())
+                return html_data
+
+    def _get_cricsheet_json(self):
+        file = os.path.join(self.input_path, self.match_id + '.json')
+        if os.path.exists(file):
+            return json.loads(self._read_file(file))
+        else:
+            return None
 
     def match_json(self):
         return self.json['match']
@@ -199,7 +246,7 @@ class Match(object):
                                                                                           str(number), str(page))
 
     def __str__(self):
-        return self.json['description']
+        return json.dumps(dict(self), ensure_ascii=False)
 
     def __unicode__(self):
         return self.json['description']
@@ -747,16 +794,16 @@ class Match(object):
         # TODO - Implement this
         return None
 
-    @staticmethod
-    def get_recent_matches(date=None):
-        if date:
-            url = "https://www.espncricinfo.com/ci/engine/match/index.html?date=%sview=week" % date
-        else:
-            url = "https://www.espncricinfo.com/ci/engine/match/index.html?view=week"
-        r = requests.get(url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        return [x['href'].split('/', 4)[4].split('.')[0] for x in soup.findAll('a', href=True, text='Scorecard')]
+    # @staticmethod
+    # def get_recent_matches(date=None):
+    #     if date:
+    #         url = "https://www.espncricinfo.com/ci/engine/match/index.html?date=%sview=week" % date
+    #     else:
+    #         url = "https://www.espncricinfo.com/ci/engine/match/index.html?view=week"
+    #     r = requests.get(url)
+    #     soup = BeautifulSoup(r.text, 'html.parser')
+    #     return [x['href'].split('/', 4)[4].split('.')[0] for x in soup.findAll('a', href=True, text='Scorecard')]
 
-    @staticmethod
-    def get_match():
-        return Match('1310947', 'data', False)
+    # @staticmethod
+    # def get_match():
+    #     return Match('1310947', 'data', False)

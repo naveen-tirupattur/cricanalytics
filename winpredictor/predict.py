@@ -12,11 +12,14 @@ from sklearn.metrics import accuracy_score
 # m = Match('682941', 'data', False)
 # md = MatchData(m)
 # print(vars(md))
-
-matches_data = Main.prepare_data('data', 't20s_male_json')
+columns = ['match_id', 'start_datetime_gmt', 'cancelled_match', 'rain_rule', 'dl_applied',
+           'date', 'country_name', 'town_name', 'result_name', 'tie_breaker_name', 'ground_name',
+           'lighting', 'scheduled_overs', 'home_team', 'batting_first', 'match_winner', 'toss_winner', 'toss_decision'
+           ]
+matches_data = Main.prepare_data('data')
 matches_df = pd.DataFrame()
-for match_data in matches_data:
-    match_df = pd.DataFrame([vars(match_data)])
+for match in matches_data:
+    match_df = pd.DataFrame([vars(match)])
     matches_df = pd.concat([matches_df, match_df], ignore_index=True, axis=0)
 
 matches_df = matches_df[matches_df['match_winner'].notnull()]

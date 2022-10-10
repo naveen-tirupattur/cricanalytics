@@ -16,6 +16,8 @@ pip install cricanalytics
 
 ### Usage
 
+Download the data from cricsheet website and place it under 'data' directory
+Run Main.prepare_data under winpredictor module to prepare the data for analysis
 
 ### Requirements
 
