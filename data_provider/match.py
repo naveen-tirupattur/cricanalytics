@@ -186,13 +186,13 @@ class Match(object):
         if os.path.exists(file):
             return json.loads(self._read_file(file))
         else:
+            log.info('Scraping JSON data for match_id: {}'.format(self.match_id))
             r = requests.get(self.json_url)
             if r.status_code == 404:
-                raise Exception('Invalid URL')
+                raise Exception('Invalid URL for match: {}'.format(self.match_id))
             elif 'Scorecard not yet available' in r.text:
                 raise Exception('Score card not yet available')
             else:
-                log.info("Scraping JSON data for match_id: {}".format(self.match_id))
                 json_data = r.json()
                 if self.save_data:
                     self._write(input_dir, file, json.dumps(json_data))
@@ -204,11 +204,11 @@ class Match(object):
         if os.path.exists(file):
             return BeautifulSoup(self._read_file(file), 'html.parser')
         else:
+            log.info('Scraping html data for match_id: {}'.format(self.match_id))
             r = requests.get(self.match_url)
             if r.status_code == 404:
-                raise Exception('Invalid URL')
+                raise Exception('Invalid URL for match: {}'.format(self.match_id))
             else:
-                log.info("Scraping html data for match_id: {}".format(self.match_id))
                 html_data = BeautifulSoup(r.text, 'html.parser')
                 if self.save_data:
                     self._write(input_dir, file, html_data.prettify())

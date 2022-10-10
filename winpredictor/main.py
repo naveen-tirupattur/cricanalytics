@@ -17,12 +17,13 @@ class Main(object):
         data_files = os.path.join(ROOT_DIR, input_dir)
         for dirname, _, filenames in os.walk(data_files):
             for filename in filenames:
-                if filename.endswith('.json'):
-                    match_id = filename.rsplit(".", 1)[0]
-                    match = Match(match_id, input_dir, save_data)
-                    matches_data.append(match)
-                    log.debug('total files read: {}'.format(i))
-                    i = i + 1
+                if not dirname.endswith('cricinfo'):
+                    if filename.endswith('.json'):
+                        match_id = filename.rsplit(".", 1)[0]
+                        match = Match(match_id, input_dir, save_data)
+                        matches_data.append(match)
+                        log.info('total files read: {}'.format(i))
+                        i = i + 1
         return matches_data
 
 
